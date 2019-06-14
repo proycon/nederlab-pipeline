@@ -14,8 +14,6 @@ def env = System.getenv()
 
 params.virtualenv =  env.containsKey('VIRTUAL_ENV') ? env['VIRTUAL_ENV'] : ""
 params.language = "nld-historical"
-params.outreport = "./foliavalidation.report"
-params.outsummary = "./foliavalidation.summary"
 params.extension = "xml"
 params.outputdir = "nederlab_output"
 params.skip = "mcpa"
