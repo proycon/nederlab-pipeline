@@ -31,6 +31,8 @@ params.tok = false
 params.workers = Runtime.runtime.availableProcessors()
 params.frogconfig = ""
 params.recursive = false
+params.outreport = "./foliavalidation.report"
+params.outsummary = "./foliavalidation.summary"
 
 
 if (params.containsKey('help') || !params.containsKey('inputdir') ) {
