@@ -458,7 +458,7 @@ if (params.wikiente) {
         fi
         set -u
 
-        wikiente -s "${spotlightserver}" -c 0.75 -o "${document.simpleName}.linked.folia.xml" "${document}"
+        wikiente -s "${spotlightserver}" -l nld -c 0.75 -o "${document.simpleName}.linked.folia.xml" "${document}"
         """
     }
 
