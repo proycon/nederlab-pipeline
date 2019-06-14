@@ -1,0 +1,103 @@
+{
+    "@context": [
+        "https://doi.org/10.5063/schema/codemeta-2.0",
+        "http://schema.org",
+        {
+            "entryPoints": { "@reverse": "schema:actionApplication" },
+            "interfaceType": { "@id": "codemeta:interfaceType" }
+        }
+    ],
+    "@type": "SoftwareSourceCode",
+    "identifier": "nederlab-pipeline",
+    "name": "Nederlab Pipeline",
+    "version": "0.8.0",
+    "description": "A set of workflows for linguistic enrichment of historical dutch",
+    "license": "https://spdx.org/licenses/GPL-3.0",
+	"url": "https://github.com/proycon/nederlab-pipeline",
+    "producer": {
+        "@id": "https://www.ru.nl/clst",
+        "@type": "Organization",
+        "name": "Centre for Language and Speech Technology",
+        "url": "https://www.ru.nl/clst",
+        "parentOrganization": {
+            "@id": "https://www.ru.nl/cls",
+            "@type": "Organization",
+            "name": "Centre for Language Studies",
+            "url": "https://www.ru.nl/cls",
+            "parentOrganization": {
+                "@id": "https://www.ru.nl",
+                "name": "Radboud University",
+                "@type": "Organization",
+                "url": "https://www.ru.nl",
+                "location": {
+                    "@type": "Place",
+                    "name": "Nijmegen"
+                }
+            }
+
+        }
+    },
+    "author": [
+		{
+			"@id": "https://orcid.org/0000-0002-1046-0006",
+			"@type": "Person",
+			"givenName": "Maarten",
+			"familyName": "van Gompel",
+			"email": "proycon@anaproy.nl",
+			"affiliation": { "@id": "https://www.ru.nl/clst" }
+		}
+	],
+	"sourceOrganization": { "@id": "https://www.ru.nl/clst" },
+	"programmingLanguage": {
+		"@type": "ComputerLanguage",
+		"identifier": "nextflow",
+		"name": "Nextflow"
+	},
+	"operatingSystem": "POSIX",
+	"codeRepository": "https://github.com/proycon/nederlab-pipeline",
+    "softwareRequirements": [
+        {
+			"@type": "SoftwareApplication",
+			"identifier": "nextflow",
+			"name": "Nextflow"
+		},
+        {
+			"@type": "SoftwareApplication",
+			"identifier": "frog",
+			"name": "Frog"
+		},
+        {
+			"@type": "SoftwareApplication",
+			"identifier": "ucto",
+			"name": "Ucto"
+		},
+        {
+			"@type": "SoftwareApplication",
+			"identifier": "foliautils",
+			"name": "FoLiA utilities"
+		}
+	],
+	"funder": [
+		{
+			"@type": "Organization",
+			"name": "Nederlab",
+			"url": "http://www.nederlab.nl"
+		}
+	],
+	"readme": "https://github.com/proycon/nederlab-pipeline/blob/master/README.md",
+	"issueTracker": "https://github.com/proycon/nederlab-pipeline/issues",
+	"contIntegration": "https://travis-ci.org/proycon/nederlab-pipeline",
+	"releaseNotes": "https://github.com/proycon/nederlab-pipeline/releases",
+	"developmentStatus": "active",
+	"keywords":  [ "nlp", "natural language processing" ],
+	"dateCreated": "2017",
+    "entryPoints": [
+        {
+            "@type": "EntryPoint",
+            "urlTemplate": "file:///nederlab.nf",
+            "name": "Nederlab",
+            "description": "Nederlab linguistic enrichment of historical texts pipeline",
+            "interfaceType": "CLI"
+        }
+    ]
+}
