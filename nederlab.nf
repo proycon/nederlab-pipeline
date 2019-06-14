@@ -400,10 +400,6 @@ if ((params.mode == "both") || (params.mode == "modernize")) {
         process merge {
             //merge the modernized annotations with the original ones, the original ones will be included as alternatives
 
-            if (params.entitylinking == "") {
-                publishDir params.outputdir, mode: 'copy', overwrite: true
-            }
-
             input:
             set val(basename), file(modernfile), file(originalfile) from foliadocuments_pairs
             val skip from params.skip
@@ -439,7 +435,6 @@ if ((params.mode == "both") || (params.mode == "modernize")) {
 
 if (params.wikiente) {
     process wikiente {
-        publishDir params.outputdir, mode: 'copy', overwrite: true
 
         input:
         file document from foliadocuments_merged
@@ -447,7 +442,7 @@ if (params.wikiente) {
         val spotlightserver from params.spotlight
 
         output:
-        file "${document.simpleName}.linked.folia.xml" into entitylinker_output
+        file "${document.simpleName}.linked.folia.xml" into foliadocuments_linked
 
 
         script:
@@ -462,8 +457,77 @@ if (params.wikiente) {
         """
     }
 
-    entitylinker_output.subscribe { println "Nederlab pipeline output document written to " +  params.outputdir + "/" + it.name }
 } else {
-    //for all modes
-    foliadocuments_merged.subscribe { println "Nederlab pipeline output document written to " +  params.outputdir + "/" + it.name }
+    foliadocuments_merged.set { foliadocuments_linked }
 }
+
+process foliavalidator {
+    validExitStatus 0,1
+
+    publishDir params.outputdir, mode: 'copy', overwrite: true, pattern: "*.nederlab.folia.xml"
+
+    input:
+    file doc from foliadocuments_linked
+    val virtualenv from params.virtualenv
+
+    output:
+    file "*.foliavalidator" into validationresults
+    file "${doc.simpleName}.nederlab.folia.xml" into outputdocuments
+
+    script:
+    """
+    set +u
+    if [ ! -z "${virtualenv}" ]; then
+        source ${virtualenv}/bin/activate
+    fi
+    set -u
+    date=\$(date +"%Y-%m-%d %H:%M:%S")
+    echo "--------------- \$date ---------------" > "${doc}.foliavalidator"
+    echo "md5 checksum: "\$(md5sum ${doc}) >> "${doc}.foliavalidator"
+    foliavalidator -o "${doc}" > ${doc.simpleName}.nederlab.folia.xml 2>> "${doc}.foliavalidator"
+    if [ \$? -eq 0 ]; then
+        echo \$(readlink "${doc}")"\tOK" >> "${doc}.foliavalidator"
+    else
+        echo \$(readlink "${doc}")"\tFAILED" >> "${doc}.foliavalidator"
+    fi
+    """
+}
+
+//split channel
+validationresults_report = Channel.create()
+validationresults_summary = Channel.create()
+validationresults.into { validationresults_report; validationresults_summary }
+
+process validationreport {
+    input:
+    file "*.foliavalidator" from validationresults_report.collect()
+
+    output:
+    file "foliavalidation.report" into report
+
+    script:
+    """
+    find -name "*.foliavalidator" | xargs -n 1 cat > foliavalidation.report
+    """
+}
+
+process summary {
+    input:
+    file "*.foliavalidator" from validationresults_summary.collect()
+
+    output:
+    file "foliavalidation.summary" into summary
+
+    script:
+    """
+    find -name "*.foliavalidator" | xargs -n 1 tail -n 1 > foliavalidation.summary
+    """
+}
+//validationresults.subscribe { print it.text }
+
+report
+    .collectFile(name: params.outreport)
+
+summary
+    .collectFile(name: params.outsummary)
+    .println { it.text }
