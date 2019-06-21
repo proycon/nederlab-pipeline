@@ -309,6 +309,7 @@ if ((params.mode == "both") || (params.mode == "modernize")) {
         input:
         set file(inputdocuments), file(dictionary), file(preservationlexicon), file(rulefile), file(inthistlexicon) from foliadocuments_batches_withdata
         val virtualenv from params.virtualenv
+        val uselangid from params.uselangid.toInteger()
 
         output:
         file "*.translated.folia.xml" into foliadocuments_modernized
@@ -326,7 +327,13 @@ if ((params.mode == "both") || (params.mode == "modernize")) {
             mv *.folia.xml modernization_work
         fi
 
-        FoLiA-wordtranslate --outputclass contemporary -t ${task.cpus} -d "${dictionary}" -p "${preservationlexicon}" -r "${rulefile}" -H "${inthistlexicon}" modernization_work/
+        if [ ${uselangid} -eq 1 ]; then
+            \$opts="-l nld"
+        else
+            \$opts=""
+        fi
+
+        FoLiA-wordtranslate \$opts --outputclass contemporary -t ${task.cpus} -d "${dictionary}" -p "${preservationlexicon}" -r "${rulefile}" -H "${inthistlexicon}" modernization_work/
         """
     }
 
