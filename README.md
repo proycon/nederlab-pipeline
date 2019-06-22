@@ -91,6 +91,14 @@ For instructions, run ``nederlab.nf --help``.
 
 You can also let Nextflow manage Docker and LaMachine for you, but we won't go into that here.
 
+## Resources
 
+Resources for Erik Tjong Kim Sang's modernisation method are included in this repository:
+
+* ``preservation2010.txt`` - Preservation lexicon
+* ``rules.machine`` - Rewrite rules
+* ``lexicon.1637-2010.250.lexserv.vandale.tsv`` - Automatically extracted translation lexicon (from Statenbijbel) for use in modernisation procedure (disabled due to too many errors, use of INT Historical Lexicon is preferred)
+
+Not included is the INT Historical Lexicon, as it is copyrighted material.
 
 

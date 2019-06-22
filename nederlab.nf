@@ -33,6 +33,9 @@ params.frogconfig = ""
 params.recursive = false
 params.outreport = "./foliavalidation.report"
 params.outsummary = "./foliavalidation.summary"
+if env.containsKey('LM_PREFIX') {
+    params.preservation =  env['LM_PREFIX']  + "/opt/nederlab-pipeline/resources/preservation2010.txt"
+    params.rules =  env['LM_PREFIX']  + "/opt/nederlab-pipeline/resources/rules.machine"
 
 
 if (params.containsKey('help') || !params.containsKey('inputdir') ) {
