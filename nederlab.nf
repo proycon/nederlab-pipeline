@@ -295,6 +295,8 @@ if ((params.mode == "both") || (params.mode == "simple")) {
 //foliadocuments_frogged_original.subscribe { println "DBNL debug pipeline output document: " + it.name }
 if ((params.mode == "both") || (params.mode == "modernize")) {
 
+    inputdocuments_counter2 = Channel.fromPath(params.inputdir+"/" + inputpattern + "." + params.extension)
+
     //add the necessary input files to each batch
     foliadocuments_batches_tokenized2
         .map { batchfiles -> tuple(batchfiles, file(params.dictionary), file(params.preservation), file(params.rules), file(params.inthistlexicon)) }
@@ -304,12 +306,12 @@ if ((params.mode == "both") || (params.mode == "modernize")) {
         //translate the document to contemporary dutch for PoS tagging
         //adds an extra <t class="contemporary"> layer
 
-        cpus Math.ceil(inputdocuments_counter.count().val / params.workers).toInteger()
+        cpus Math.ceil(inputdocuments_counter2.count().val / params.workers).toInteger()
 
         input:
         set file(inputdocuments), file(dictionary), file(preservationlexicon), file(rulefile), file(inthistlexicon) from foliadocuments_batches_withdata
         val virtualenv from params.virtualenv
-        val uselangid from params.uselangid.toInteger()
+        val uselangid from params.uselangid
 
         output:
         file "*.translated.folia.xml" into foliadocuments_modernized
@@ -327,7 +329,7 @@ if ((params.mode == "both") || (params.mode == "modernize")) {
             mv *.folia.xml modernization_work
         fi
 
-        if [ ${uselangid} -eq 1 ]; then
+        if [ "${uselangid}" = "true" ]; then
             \$opts="-l nld"
         else
             \$opts=""
