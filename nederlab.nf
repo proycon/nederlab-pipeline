@@ -329,10 +329,10 @@ if ((params.mode == "both") || (params.mode == "modernize")) {
             mv *.folia.xml modernization_work
         fi
 
-        if [ "${uselangid}" = "true" ]; then
-            \$opts="-l nld"
+        if [[ "${uselangid}" == "true" ]]; then
+            opts="-l nld"
         else
-            \$opts=""
+            opts=""
         fi
 
         FoLiA-wordtranslate \$opts --outputclass contemporary -t ${task.cpus} -d "${dictionary}" -p "${preservationlexicon}" -r "${rulefile}" -H "${inthistlexicon}" modernization_work/
