@@ -3,14 +3,65 @@
 
 # Nederlab Pipeline
 
+## Introduction
+
 This repository contains the NLP pipeline for the linguistic enrichment of
 historical dutch, as developed in the scope of the [Nederlab
 project](https://www.nederlab.nl/). This repository covers only the pipeline
-logic, powered by [Nextflow](https://www.nextflow.io), not the individual components.
+logic, powered by [Nextflow](https://www.nextflow.io), not the individual components. It depends on the following tools:
+
+* [ucto](https://languagemachines.github.io/ucto) for tokenisation.
+* [Frog](https://languagemachines.github.io/frog) for PoS-tagging, lemmatisation and Named Entity Recognition for Dutch,
+    Middle Dutch, and Early New Dutch (vroegnieuwnederlands)
+* [FoLiA-utils](https://github.com/LanguageMachines) for:
+    * ``FoLiA-wordtranslate`` - Implements Erik Tjong Kim Sang's word-by-word modernisation method. This is a
+        reimplementation of his initial prototype, with some improvements of my own.
+* [FoLiA Tools](https://github.com/proycon/foliatools) for:
+    * ``folialangid`` - Language Identification based on [langid.py](https://github.com/saffsd/langid.py).
+    * ``foliavalidator`` - Validation
+    * ``foliaupgrade`` - Upgrades to FoLiA v2
+    * ``tei2folia`` - Conversion from a subset of TEI to FoLiA.
+    * ``foliamerge`` - Merges annotations between two FoLiA documents.
+* [wikiente](https://github.com/proycon/wikiente) for Named Entity Recognition and Linking using [DBPedia Spotlight](https://www.dbpedia-spotlight.org)
+
+## Format
+
+All tools in this pipeline take and produces documents in the [FoLiA](https://proycon.github.io/folia) XML format (version 2). Provenance information of all the tools is recorded in the documents themselves. Please take note of the [FoLiA Guidelines](https://folia.readthedocs.io/en/latest/guidelines.html) if you work with this pipeline or any documents produced by it.
+
+The following linguistic enrichments can be performed, note that different FoLiA (tag)sets can be produced, even at the same
+time, based on what methodology was choosen and what time period the document covers:
+
+* Modernisation of 17th century dutch
+    * Produces [text annotation](https://folia.readthedocs.io/en/latest/text_annotation.html) with the class ``contemporary``, e.g. ``<t class="contemporary">``
+* Part-of-Speech tagging
+    * Produces [part-of-speech annotation](https://folia.readthedocs.io/en/latest/pos_annotation.html#pos-annotation) in one or more the following sets:
+		* http://ilk.uvt.nl/folia/sets/frog-mbpos-nl - Part-of-Speech tags as produced by Frog by default for contemporary dutch.
+        * http://rdf.ivdnt.org/pos/cgn-bab - A CGN-like tagset, but converted from another tagset used for the Brieven als Buit corpus (early new dutch)
+		* http://rdf.ivdnt.org/pos/cgn-mnl - A CGN-like tagset, but converted from another tagset used for Corpys Gysseling and Corpus Reenen Mulder (middle dutch)
+* Language Identification
+	* Produces [language annotation](https://folia.readthedocs.io/en/latest/lang_annotation.html) in the following set:
+		* http://raw.github.com/proycon/folia/master/setdefinitions/iso639_3.foliaset - ISO-639-3 language codes
+* Lemmatisation
+	* Produces [lemma annotation](https://folia.readthedocs.io/en/latest/lemma_annotation.html) in the following sets:
+		* http://ilk.uvt.nl/folia/sets/frog-mblem-nl - Lemmas as produced by Frog by default for contemporary dutch.
+		* http://rdf.ivdnt.org/lemma/corpus-brieven-als-buit - Lemmas from Brieven als Buit (early new dutch/vroegnieuwnederlands)
+		* http://rdf.ivdnt.org/lemma/corpus-gysseling - Lemmas from Corpus Gysseling and Corpus Reenen Mulder (middle dutch/middelnederlands)
+		* https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/int_lemmaid_withcompounds.foliaset.ttl - Lemma IDs from the INT Historical Lexicon, with compound lemmas.
+		* https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/int_lemmatext_withcompounds.foliaset.ttl - Lemma (words) from the INT Historical Lexicon, with compound lemmas.
+* Named Entity Recognition
+	* Produces [entity annotation](https://folia.readthedocs.io/en/latest/entity_annotation.html) in the following sets:
+		* http://ilk.uvt.nl/folia/sets/frog-ner-nl - Broad named entity classes as produced by Frog (per,loc,org, etc..)
+		* https://raw.githubusercontent.com/proycon/folia/master/setdefinitions/spotlight/dbpedia.foliaset.ttl - Links directly to individual DBPedia resources (class is a full URI), produced by WikiEnte
+
+In addition to the linguistic annotations, the tei2folia converter produces a wide variety of [structural
+annotations](https://folia.readthedocs.io/en/latest/structure_annotation_category.html) and also [markup
+annotations](https://folia.readthedocs.io/en/latest/textmarkup_annotation_category.html), as it's objective is to retain all information from the original TEI source.
+
+**Note:** Older versions of this pipeline incorporated [foliaentity](https://github.com/ErwinKomen/foliaentity) instead of wikiente, which performed entity linking separate from entity recognition and encoded it in the FoLiA documents as *alignments* (now called [relation annotation](https://folia.readthedocs.io/en/latest/relation_annotation.html) since FoliA v2). This is something to be aware of when you are interested in the linking information and are processing documents (always FoLiA v1.4 or v1.5) produced by predecessors of this pipeline.
 
 ## Installation
 
-The pipeline and all components on which it depends is shipped as a part of [LaMachine](https://proycon.github.io/LaMachine).
+The pipeline and all components on which it depends is shipped as a part of [LaMachine](https://proycon.github.io/LaMachine), which comes in various flavours (Virtual Machine, Docker container, local installation, etc..).
 
 ## Usage
 
@@ -20,7 +71,15 @@ Inside LaMachine, you can invoke the workflow as follows:
 $ nederlab.nf
 ```
 
+or:
+
+```
+$ nextflow run $(which nederlab.nf)
+```
+
 For instructions, run ``nederlab.nf --help``.
+
+You can also let Nextflow manage Docker and LaMachine for you, but we won't go into that here.
 
 
 
