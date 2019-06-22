@@ -59,6 +59,8 @@ annotations](https://folia.readthedocs.io/en/latest/textmarkup_annotation_catego
 
 **Note:** Older versions of this pipeline incorporated [foliaentity](https://github.com/ErwinKomen/foliaentity) instead of wikiente, which performed entity linking separate from entity recognition and encoded it in the FoLiA documents as *alignments* (now called [relation annotation](https://folia.readthedocs.io/en/latest/relation_annotation.html) since FoliA v2). This is something to be aware of when you are interested in the linking information and are processing documents (always FoLiA v1.4 or v1.5) produced by predecessors of this pipeline.
 
+**Note:** Older version of this pipeline used Erik Tjong Kim Sangs's TEI to FoLiA converter, which was deemed too fragile and hard to maintain and was replaced by the new ``tei2folia`` in [FoLiA tools](https://github.com/proycon/foliatools). Older versions can be recognised as they predate FoLiA v2.
+
 ## Installation
 
 The pipeline and all components on which it depends is shipped as a part of [LaMachine](https://proycon.github.io/LaMachine), which comes in various flavours (Virtual Machine, Docker container, local installation, etc..).
