@@ -57,9 +57,17 @@ In addition to the linguistic annotations, the tei2folia converter produces a wi
 annotations](https://folia.readthedocs.io/en/latest/structure_annotation_category.html) and also [markup
 annotations](https://folia.readthedocs.io/en/latest/textmarkup_annotation_category.html), as it's objective is to retain all information from the original TEI source.
 
-**Note:** Older versions of this pipeline incorporated [foliaentity](https://github.com/ErwinKomen/foliaentity) instead of wikiente, which performed entity linking separate from entity recognition and encoded it in the FoLiA documents as *alignments* (now called [relation annotation](https://folia.readthedocs.io/en/latest/relation_annotation.html) since FoliA v2). This is something to be aware of when you are interested in the linking information and are processing documents (always FoLiA v1.4 or v1.5) produced by predecessors of this pipeline.
+### Changes from older versions
 
-**Note:** Older version of this pipeline used Erik Tjong Kim Sangs's TEI to FoLiA converter, which was deemed too fragile and hard to maintain and was replaced by the new ``tei2folia`` in [FoLiA tools](https://github.com/proycon/foliatools). Older versions can be recognised as they predate FoLiA v2.
+As there are documents produced with previous versions of this pipeline, it is important to be aware of the biggest changes:
+
+* **1)** Older versions of this pipeline incorporated [foliaentity](https://github.com/ErwinKomen/foliaentity) instead of wikiente, which performed entity linking separate from entity recognition and encoded it in the FoLiA documents as *alignments* (now called [relation annotation](https://folia.readthedocs.io/en/latest/relation_annotation.html) since FoliA v2). This is something to be aware of when you are interested in the linking information and are processing documents (always FoLiA v1.4 or v1.5) produced by predecessors of this pipeline.
+
+* **2)** Older versions of this pipeline used Erik Tjong Kim Sangs's TEI to FoLiA converter for converting DBNL documents. This converter was deemed too fragile and hard to maintain and was replaced by the new ``tei2folia`` in [FoLiA tools](https://github.com/proycon/foliatools). Older versions can be recognised as they predate FoLiA v2. Older documents also miss a lot of metadata as this was not really handled by the previous converter.
+
+* **3)** Older versions lack provenance information
+
+This pipeline itself used to be part of [PICCL](https://github.com/LanguageMachines/PICCL), but was split-off for maintainability and clarity.
 
 ## Installation
 
