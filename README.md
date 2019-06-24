@@ -67,6 +67,10 @@ As there are documents produced with previous versions of this pipeline, it is i
 
 * **3)** Older versions lack provenance information
 
+* **4)** Older DBNL versions were split, in the sense that independent titles (onzelfstandige titels), were separate
+    documents. The current TEI-to-FoLiA converter no longer does this, but each independent title is clearer marked
+    using FoLiA's submetadata mechanism.
+
 This pipeline itself used to be part of [PICCL](https://github.com/LanguageMachines/PICCL), but was split-off for maintainability and clarity.
 
 ## Installation
