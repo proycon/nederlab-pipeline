@@ -18,8 +18,6 @@ params.extension = "xml"
 params.outputdir = "nederlab_output"
 params.skip = "mcpa"
 params.oztids = "data/dbnl_ozt_ids.txt"
-params.preservation = "/dev/null"
-params.rules = "/dev/null"
 params.wikiente = false
 params.spotlight = "http://127.0.0.1:2222/rest/"
 params.metadatadir = ""
@@ -36,6 +34,9 @@ params.outsummary = "./foliavalidation.summary"
 if (env.containsKey('LM_PREFIX')) {
     params.preservation =  env['LM_PREFIX']  + "/opt/nederlab-pipeline/resources/preservation2010.txt"
     params.rules =  env['LM_PREFIX']  + "/opt/nederlab-pipeline/resources/rules.machine"
+} else {
+    params.preservation = "/dev/null"
+    params.rules = "/dev/null"
 }
 
 
