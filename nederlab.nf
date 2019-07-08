@@ -153,7 +153,7 @@ if (params.tei) {
             fi
             set -u
 
-            python ${LM_PREFIX}/opt/PICCL/scripts/dbnl/addmetadata.py --oztfile ${oztfile} -d ${metadatadir} -o ${inputdocument.simpleName}.withmetadata.folia.xml ${inputdocument}
+            python ${LM_PREFIX}/opt/nederlab-pipeline/scripts/dbnl/addmetadata.py --oztfile ${oztfile} -d ${metadatadir} -o ${inputdocument.simpleName}.withmetadata.folia.xml ${inputdocument}
             """
         }
     } else {
