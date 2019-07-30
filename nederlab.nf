@@ -227,7 +227,7 @@ if (params.dolangid) {
         set -u
 
         if [[ "${inputdocument}" != "${inputdocument.simpleName}.langid.folia.xml" ]]; then
-            folialangid -n -l nld,eng,deu,lat,fra,spa,ita,por,rus,tur,fas,ara "${inputdocument}" > "${inputdocument.simpleName}.langid.folia.xml"
+            folialangid -n -t s -l nld,eng,deu,lat,fra,spa,ita,por,rus,tur,fas,ara "${inputdocument}" > "${inputdocument.simpleName}.langid.folia.xml"
         else
             exit 0
         fi
