@@ -469,6 +469,7 @@ if (params.wikiente) {
         fi
         set -u
 
+        #Note: We ignore (-i) connection errors here, this may lead to some misses! (but at least doesn't crash the pipeline)
         wikiente -i -s "${spotlightserver}" -l nld -c 0.75 -o "${document.simpleName}.linked.folia.xml" "${document}"
         """
     }
