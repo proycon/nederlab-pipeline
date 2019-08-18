@@ -270,7 +270,7 @@ if (params.mode == "simple") {
         val frogconfig from params.frogconfig
 
         output:
-        file "${foliadocument.simpleName}.frogoriginal.folia.xml" into foliadocument_frogged_original
+        file "${foliadocument.simpleName}.frogoriginal.folia.xml" into foliadocuments_frogged_original
 
         script:
         """
