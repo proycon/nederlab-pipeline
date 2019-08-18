@@ -31,7 +31,7 @@ params.frogconfig = ""
 params.recursive = false
 params.outreport = "./foliavalidation.report"
 params.outsummary = "./foliavalidation.summary"
-params.detectlanguages = "nld,eng,deu,lat,fra,spa,ita,por,rus,tur,fas,ara"
+params.detectlanguages = "nld,nld-vnn,dum,eng,deu,lat,swe,dan,fra,spa,ita,por,rus,tur,fas,ara"
 params.langthreshold = "1.0"
 params.frogerrors = "terminate"
 if (env.containsKey('LM_PREFIX')) {
@@ -223,7 +223,7 @@ if (params.dolangid) {
         val virtualenv from params.virtualenv
 
         output:
-        file "${inputdocument.simpleName}.langid.folia.xml" into foliadocuments_postlangid
+        file "${inputdocument.simpleName}.lang.folia.xml" into foliadocuments_postlangid
 
         script:
         """
@@ -233,8 +233,12 @@ if (params.dolangid) {
         fi
         set -u
 
+        #strip extra components from input file
+        mv ${inputdocument} ${inputdocument.simpleName}.folia.xml
+
         if [[ "${inputdocument}" != "${inputdocument.simpleName}.langid.folia.xml" ]]; then
-            folialangid -n -t s -l "${detectlanguages}" "${inputdocument}" > "${inputdocument.simpleName}.langid.folia.xml"
+            colibri-lang -t s -l "${detectlanguages}" "${inputdocument.simpleName}.folia.xml"
+            echo "Output should be in ${inputdocument.simpleName}.lang.folia.xml"
         else
             exit 0
         fi
