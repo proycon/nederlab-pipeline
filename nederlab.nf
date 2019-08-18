@@ -307,7 +307,7 @@ if (params.mode == "modernize") {
 
     inputdocuments_counter2 = Channel.fromPath(params.inputdir+"/" + inputpattern + "." + params.extension)
 
-    //add the necessary input files to each batch
+    //add the necessary extra input files to each input file
     foliadocuments_postlangid
         .map { inputdocument -> tuple(inputdocument, file(params.dictionary), file(params.preservation), file(params.rules), file(params.inthistlexicon)) }
         .set { foliadocuments_withdata }
@@ -383,16 +383,13 @@ if (params.mode == "modernize") {
 
 
 
-    } else {
-        //modernize mode
-        foliadocuments_frogged_modernized
-            .set { foliadocuments_merged }
-    }
+    foliadocuments_frogged_modernized
+        .set { foliadocuments_frogged }
 } else {
     //simple mode
 
     foliadocuments_frogged_original
-        .set { foliadocuments_merged }
+        .set { foliadocuments_frogged }
 
 }
 
@@ -400,7 +397,7 @@ if (params.wikiente) {
     process wikiente {
 
         input:
-        file document from foliadocuments_merged
+        file document from foliadocuments_frogged
         val virtualenv from params.virtualenv
         val spotlightserver from params.spotlight
 
@@ -434,7 +431,7 @@ if (params.wikiente) {
     }
 
 } else {
-    foliadocuments_merged.set { foliadocuments_linked }
+    foliadocuments_frogged.set { foliadocuments_linked }
 }
 
 process foliavalidator {
