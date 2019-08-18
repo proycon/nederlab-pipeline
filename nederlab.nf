@@ -31,6 +31,9 @@ params.frogconfig = ""
 params.recursive = false
 params.outreport = "./foliavalidation.report"
 params.outsummary = "./foliavalidation.summary"
+params.detectlanguages = "nld,eng,deu,lat,fra,spa,ita,por,rus,tur,fas,ara"
+params.langthreshold = "1.0"
+params.frogerrors = "terminate"
 if (env.containsKey('LM_PREFIX')) {
     params.preservation =  env['LM_PREFIX']  + "/opt/nederlab-pipeline/resources/preservation2010.txt"
     params.rules =  env['LM_PREFIX']  + "/opt/nederlab-pipeline/resources/rules.machine"
@@ -48,7 +51,7 @@ if (params.containsKey('help') || !params.containsKey('inputdir') ) {
     log.info "  --inputdir DIRECTORY     Input directory (FoLiA documents or TEI documents if --tei is set)"
     log.info ""
     log.info "Optional parameters:"
-    log.info "  --mode [modernize|simple|both|convert]  Add modernisation layer, process original content immediately (simple), do both? Or convert to FoLiA only (used with --tei)? Default: simple"
+    log.info "  --mode [modernize|simple|convert]  Add modernisation layer, process original content immediately (simple), Or convert to FoLiA only (used with --tei)? Default: simple"
     log.info "  --dictionary FILE        Modernisation dictionary (required for modernize mode)"
     log.info "  --inthistlexicon FILE    INT Historical Lexicon dump file (required for modernize mode)"
     log.info "  --workers NUMBER         The number of workers (e.g. frogs) to run in parallel; input will be divided into this many batches"
@@ -62,10 +65,13 @@ if (params.containsKey('help') || !params.containsKey('inputdir') ) {
     log.info "  --metadatadir DIRECTORY  Directory including JSON metadata (one file matching each input document), needs to be an absolute path"
     log.info "  --language LANGUAGE      Language"
     log.info "  --frogconfig FILE        Path to frog.cfg (or using the default if not set)"
+    log.info "  --frogerrors             How to handle errors during frogging. Set to terminate  (default) or ignore.
     log.info "  --oztids FILE            List of IDs for DBNL onzelfstandige titels (default: data/dbnl_ozt_ids.txt)"
     log.info "  --extension STR          Extension of TEI documents in input directory (default: xml)"
     log.info "  --skip=[mptncla]         Skip Tokenizer (t), Lemmatizer (l), Morphological Analyzer (a), Chunker (c), Multi-Word Units (m), Named Entity Recognition (n), or Parser (p)  (default: mcpa)"
     log.info "  --dolangid               Do language identification"
+    log.info "  --detectlanguages        Languages to consider in language identification (iso-639-3 codes, comma separated list)"
+    log.info "  --langthreshold          Confidence threshold in language detection"
     log.info "  --uselangid              Take language identification into account (does not perform identification but takes already present identification into account!)"
     log.info "  --wikiente               Run WikiEnte for Name Entity Recognition and entity linking"
     log.info "  --spotlight URL          URL to spotlight server (should end in rest/, defaults to http://127.0.0.1:2222/rest"
@@ -213,6 +219,7 @@ if (params.dolangid) {
     process langid {
         input:
         file inputdocument from foliadocuments_tokenized
+        val detectlanguages from params.detectlanguages
         val virtualenv from params.virtualenv
 
         output:
@@ -227,7 +234,7 @@ if (params.dolangid) {
         set -u
 
         if [[ "${inputdocument}" != "${inputdocument.simpleName}.langid.folia.xml" ]]; then
-            folialangid -n -t s -l nld,eng,deu,lat,fra,spa,ita,por,rus,tur,fas,ara "${inputdocument}" > "${inputdocument.simpleName}.langid.folia.xml"
+            folialangid -n -t s -l "${detectlanguages}" "${inputdocument}" > "${inputdocument.simpleName}.langid.folia.xml"
         else
             exit 0
         fi
@@ -239,11 +246,11 @@ if (params.dolangid) {
 
 
 //split the tokenized documents into batches, fork into two channels
-foliadocuments_postlangid
-    .buffer( size: Math.ceil(inputdocuments_counter.count().val / params.workers).toInteger(), remainder: true)
-    .into { foliadocuments_batches_tokenized1; foliadocuments_batches_tokenized2 }
+//foliadocuments_postlangid
+//    .buffer( size: Math.ceil(inputdocuments_counter.count().val / params.workers).toInteger(), remainder: true)
+//    .into { foliadocuments_batches_tokenized1; foliadocuments_batches_tokenized2 }
 
-if ((params.mode == "both") || (params.mode == "simple")) {
+if (params.mode == "simple") {
 
     process frog_original {
         //Linguistic enrichment on the original text of the document (pre-modernization)
@@ -253,15 +260,17 @@ if ((params.mode == "both") || (params.mode == "simple")) {
             publishDir params.outputdir, mode: 'copy', overwrite: true
         }
 
+        errorStrategy params.frogerrors
+
         input:
-        file foliadocuments from foliadocuments_batches_tokenized1 //foliadocuments is a collection/batch for multiple files
+        file foliadocument from foliadocuments_postlangid //foliadocuments is a collection/batch for multiple files
         val skip from params.skip
         val uselangid from params.uselangid
         val virtualenv from params.virtualenv
         val frogconfig from params.frogconfig
 
         output:
-        file "*.frogoriginal.folia.xml" into foliadocuments_frogged_original mode flatten
+        file "${foliadocument.simpleName}.frogoriginal.folia.xml" into foliadocument_frogged_original
 
         script:
         """
@@ -282,15 +291,7 @@ if ((params.mode == "both") || (params.mode == "simple")) {
             opts="\$opts --language=nld"
         fi
 
-        #move input files to separate staging directory
-        mkdir input
-        mv *.folia.xml input/
-
-        #output will be in cwd
-        frog \$opts --override tokenizer.rulesFile=tokconfig-nld-historical --xmldir "." --nostdout --testdir input/ -x
-
-        #set proper output extension
-        mmv "*.folia.xml" "#1.frogoriginal.folia.xml"
+        frog \$opts --override tokenizer.rulesFile=tokconfig-nld-historical -x ${foliadocument} -X ${foliadocument.simpleName}.frogoriginal.folia.xml --nostdout
         """
     }
 
@@ -298,28 +299,25 @@ if ((params.mode == "both") || (params.mode == "simple")) {
 
 
 //foliadocuments_frogged_original.subscribe { println "DBNL debug pipeline output document: " + it.name }
-if ((params.mode == "both") || (params.mode == "modernize")) {
+if (params.mode == "modernize") {
 
     inputdocuments_counter2 = Channel.fromPath(params.inputdir+"/" + inputpattern + "." + params.extension)
 
     //add the necessary input files to each batch
-    foliadocuments_batches_tokenized2
-        .map { batchfiles -> tuple(batchfiles, file(params.dictionary), file(params.preservation), file(params.rules), file(params.inthistlexicon)) }
-        .set { foliadocuments_batches_withdata }
+    foliadocuments_postlangid
+        .map { inputdocument -> tuple(inputdocument, file(params.dictionary), file(params.preservation), file(params.rules), file(params.inthistlexicon)) }
+        .set { foliadocuments_withdata }
 
     process modernize {
         //translate the document to contemporary dutch for PoS tagging
         //adds an extra <t class="contemporary"> layer
-
-        cpus Math.ceil(inputdocuments_counter2.count().val / params.workers).toInteger()
-
         input:
-        set file(inputdocuments), file(dictionary), file(preservationlexicon), file(rulefile), file(inthistlexicon) from foliadocuments_batches_withdata
+        set file(inputdocument), file(dictionary), file(preservationlexicon), file(rulefile), file(inthistlexicon) from foliadocuments_withdata
         val virtualenv from params.virtualenv
         val uselangid from params.uselangid
 
         output:
-        file "*.translated.folia.xml" into foliadocuments_modernized
+        file "${inputdocument.simpleName}.translated.folia.xml" into foliadocuments_modernized
 
         script:
         """
@@ -329,18 +327,13 @@ if ((params.mode == "both") || (params.mode == "modernize")) {
         fi
         set -u
 
-        if [ ! -d modernization_work ]; then
-            mkdir modernization_work
-            mv *.folia.xml modernization_work
-        fi
-
         if [[ "${uselangid}" == "true" ]]; then
             opts="-l nld"
         else
             opts=""
         fi
 
-        FoLiA-wordtranslate \$opts --outputclass contemporary -t ${task.cpus} -d "${dictionary}" -p "${preservationlexicon}" -r "${rulefile}" -H "${inthistlexicon}" modernization_work/
+        FoLiA-wordtranslate \$opts --outputclass contemporary -t 1 -d "${dictionary}" -p "${preservationlexicon}" -r "${rulefile}" -H "${inthistlexicon}" ${inputdocument}
         """
     }
 
@@ -348,6 +341,8 @@ if ((params.mode == "both") || (params.mode == "modernize")) {
         if ((!params.wikiente) && (params.mode == "modernize")) {
             publishDir params.outputdir, mode: 'copy', overwrite: true
         }
+
+        errorStrategy params.frogerrors
 
         input:
         file inputdocuments from foliadocuments_modernized
@@ -357,7 +352,7 @@ if ((params.mode == "both") || (params.mode == "modernize")) {
         val frogconfig from params.frogconfig
 
         output:
-        file "*.frogmodernized.folia.xml" into foliadocuments_frogged_modernized mode flatten
+        file "*.frogmodernized.folia.xml" into foliadocuments_frogged_modernized
 
         script:
         """
@@ -378,63 +373,11 @@ if ((params.mode == "both") || (params.mode == "modernize")) {
             opts="\$opts --language=nld"
         fi
 
-        if [ ! -d in ]; then
-            mkdir in out
-            mv *.translated.folia.xml in/
-        fi
-
-        #output will be in cwd
-        frog \$opts --override tokenizer.rulesFile=tokconfig-nld-historical -x --xmldir "out/" --textclass contemporary --nostdout --testdir in/ --retry
-
-
-        #set proper output extension
-        if [ \$? -eq 0 ]; then
-            mv out/*.xml .
-            mmv "*.translated.folia.xml" "#1.frogmodernized.folia.xml"
-        fi
+        frog \$opts --override tokenizer.rulesFile=tokconfig-nld-historical -x ${inputdocument} -X ${inputdocument.simpleName}.frogmodernized.folia.xml --textclass contemporary --nostdout
         """
     }
 
 
-    if (params.mode == "both") {
-
-        // transform [file] -> [(basename, file)]
-        foliadocuments_frogged_original
-            .map { file -> [file.simpleName, file] }
-            .set { foliadocuments_frogged_original2 }
-
-        // transform [file] -> [(basename, file)]
-        foliadocuments_frogged_modernized
-            .map { file -> [file.simpleName, file] }
-            .set { foliadocuments_frogged_modernized2 }
-
-        //now combine the two channels on basename: [ (basename, modernizedfile, originalfile) ]
-        foliadocuments_frogged_modernized2
-            .combine(foliadocuments_frogged_original2, by: 0) //0 refers to first input tuple element (basename)
-            .set { foliadocuments_pairs }
-
-        process merge {
-            //merge the modernized annotations with the original ones, the original ones will be included as alternatives
-
-            input:
-            set val(basename), file(modernfile), file(originalfile) from foliadocuments_pairs
-            val skip from params.skip
-            val virtualenv from params.virtualenv
-
-            output:
-            file "${basename}.folia.xml" into foliadocuments_merged
-
-            script:
-            """
-            set +u
-            if [ ! -z "${virtualenv}" ]; then
-                source ${virtualenv}/bin/activate
-            fi
-            set -u
-
-            foliamerge -a "${modernfile}" "${originalfile}" > "${basename}.folia.xml"
-            """
-        }
 
     } else {
         //modernize mode
@@ -451,6 +394,8 @@ if ((params.mode == "both") || (params.mode == "modernize")) {
 
 if (params.wikiente) {
     process wikiente {
+        errorStrategy task.attempt >= 9 ? 'ignore' : 'retry'
+        maxRetries 10
 
         input:
         file document from foliadocuments_merged
