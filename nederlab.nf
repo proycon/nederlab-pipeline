@@ -65,7 +65,7 @@ if (params.containsKey('help') || !params.containsKey('inputdir') ) {
     log.info "  --metadatadir DIRECTORY  Directory including JSON metadata (one file matching each input document), needs to be an absolute path"
     log.info "  --language LANGUAGE      Language"
     log.info "  --frogconfig FILE        Path to frog.cfg (or using the default if not set)"
-    log.info "  --frogerrors             How to handle errors during frogging. Set to terminate  (default) or ignore.
+    log.info "  --frogerrors             How to handle errors during frogging. Set to terminate  (default) or ignore."
     log.info "  --oztids FILE            List of IDs for DBNL onzelfstandige titels (default: data/dbnl_ozt_ids.txt)"
     log.info "  --extension STR          Extension of TEI documents in input directory (default: xml)"
     log.info "  --skip=[mptncla]         Skip Tokenizer (t), Lemmatizer (l), Morphological Analyzer (a), Chunker (c), Multi-Word Units (m), Named Entity Recognition (n), or Parser (p)  (default: mcpa)"
