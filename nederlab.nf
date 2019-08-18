@@ -398,8 +398,6 @@ if (params.mode == "modernize") {
 
 if (params.wikiente) {
     process wikiente {
-        errorStrategy task.attempt >= 9 ? 'ignore' : 'retry'
-        maxRetries 10
 
         input:
         file document from foliadocuments_merged
@@ -412,6 +410,7 @@ if (params.wikiente) {
 
         script:
         """
+        #!/bin/bash
         set +u
         if [ ! -z "${virtualenv}" ]; then
             source ${virtualenv}/bin/activate
@@ -419,7 +418,18 @@ if (params.wikiente) {
         set -u
 
         #Note: We ignore (-i) connection errors here, this may lead to some misses! (but at least doesn't crash the pipeline)
-        wikiente -i -s "${spotlightserver}" -l nld -c 0.75 -o "${document.simpleName}.linked.folia.xml" "${document}"
+        attempt=0
+        while [ \$attempt -lt 10 ]; do
+            attempt=\$((attempt + 1)
+            wikiente -i -s "${spotlightserver}" -l nld -c 0.75 -o "${document.simpleName}.linked.folia.xml" "${document}"
+            if [ \$? -eq 0 ]; then
+                exit 0;
+            fi
+            sleep 1
+        done
+
+        #we failed but we continue nevertheless
+        cp ${document} ${document.simpleName}.linked.folia.xml
         """
     }
 
