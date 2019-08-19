@@ -201,7 +201,7 @@ if (params.dolangid) {
         mv ${inputdocument} ${inputdocument.simpleName}.folia.xml
 
         if [[ "${inputdocument}" != "${inputdocument.simpleName}.langid.folia.xml" ]]; then
-            colibri-lang --confidence 0.33 --langs "${detectlanguages}" "${inputdocument.simpleName}.folia.xml"
+            colibri-lang --confidence 0.33 --langs "${detectlanguages}" --subcodes "dum:nld,nld-vnn:nld" "${inputdocument.simpleName}.folia.xml"
             echo "Output should be in ${inputdocument.simpleName}.lang.folia.xml"
         else
             exit 0
