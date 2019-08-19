@@ -418,7 +418,7 @@ if (params.wikiente) {
         #Note: We ignore (-i) connection errors here, this may lead to some misses! (but at least doesn't crash the pipeline)
         attempt=0
         while [ \$attempt -lt 10 ]; do
-            attempt=\$((attempt + 1)
+            attempt=\$((attempt + 1))
             wikiente -i -s "${spotlightserver}" -l nld -c 0.75 -o "${document.simpleName}.linked.folia.xml" "${document}"
             if [ \$? -eq 0 ]; then
                 exit 0;
