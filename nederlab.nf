@@ -467,8 +467,8 @@ process foliavalidator {
 }
 
 //split channel
-validationresults_report = Channel.create()
-validationresults_summary = Channel.create()
+//validationresults_report = Channel.create()
+//validationresults_summary = Channel.create()
 validationresults.into { validationresults_report; validationresults_summary }
 
 process validationreport {
