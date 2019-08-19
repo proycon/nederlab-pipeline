@@ -179,6 +179,39 @@ if (params.tei) {
     foliadocuments_untokenized = Channel.fromPath(params.inputdir+"/" + inputpattern + ".folia.xml")
 }
 
+if (params.dolangid) {
+    process langid {
+        input:
+        file inputdocument from foliadocuments_untokenized
+        val detectlanguages from params.detectlanguages
+        val virtualenv from params.virtualenv
+
+        output:
+        file "${inputdocument.simpleName}.lang.folia.xml" into foliadocuments_postlangid
+
+        script:
+        """
+        set +u
+        if [ ! -z "${virtualenv}" ]; then
+            source ${virtualenv}/bin/activate
+        fi
+        set -u
+
+        #strip extra components from input file
+        mv ${inputdocument} ${inputdocument.simpleName}.folia.xml
+
+        if [[ "${inputdocument}" != "${inputdocument.simpleName}.langid.folia.xml" ]]; then
+            colibri-lang --confidence 0.33 --langs "${detectlanguages}" "${inputdocument.simpleName}.folia.xml"
+            echo "Output should be in ${inputdocument.simpleName}.lang.folia.xml"
+        else
+            exit 0
+        fi
+        """
+    }
+} else {
+    foliadocuments_untokenized.set { foliadocuments_postlangid }
+}
+
 if ((params.tok) && (params.mode != "convert")) {
     //documents need to be tokenised
     if (!params.tei) {
@@ -188,7 +221,7 @@ if ((params.tok) && (params.mode != "convert")) {
         //tokenize the text
 
         input:
-        file inputdocument from foliadocuments_untokenized
+        file inputdocument from foliadocuments_postlangid
         val language from params.language
         val virtualenv from params.virtualenv
 
@@ -215,38 +248,6 @@ if ((params.tok) && (params.mode != "convert")) {
 }
 
 
-if (params.dolangid) {
-    process langid {
-        input:
-        file inputdocument from foliadocuments_tokenized
-        val detectlanguages from params.detectlanguages
-        val virtualenv from params.virtualenv
-
-        output:
-        file "${inputdocument.simpleName}.lang.folia.xml" into foliadocuments_postlangid
-
-        script:
-        """
-        set +u
-        if [ ! -z "${virtualenv}" ]; then
-            source ${virtualenv}/bin/activate
-        fi
-        set -u
-
-        #strip extra components from input file
-        mv ${inputdocument} ${inputdocument.simpleName}.folia.xml
-
-        if [[ "${inputdocument}" != "${inputdocument.simpleName}.langid.folia.xml" ]]; then
-            colibri-lang --confidence 0.33 --tags s --langs "${detectlanguages}" "${inputdocument.simpleName}.folia.xml"
-            echo "Output should be in ${inputdocument.simpleName}.lang.folia.xml"
-        else
-            exit 0
-        fi
-        """
-    }
-} else {
-    foliadocuments_tokenized.set { foliadocuments_postlangid }
-}
 
 
 //split the tokenized documents into batches, fork into two channels
@@ -267,7 +268,7 @@ if (params.mode == "simple") {
         errorStrategy params.frogerrors
 
         input:
-        file foliadocument from foliadocuments_postlangid //foliadocuments is a collection/batch for multiple files
+        file foliadocument from foliadocuments_tokenized //foliadocuments is a collection/batch for multiple files
         val skip from params.skip
         val uselangid from params.uselangid
         val virtualenv from params.virtualenv
@@ -308,7 +309,7 @@ if (params.mode == "modernize") {
     inputdocuments_counter2 = Channel.fromPath(params.inputdir+"/" + inputpattern + "." + params.extension)
 
     //add the necessary extra input files to each input file
-    foliadocuments_postlangid
+    foliadocuments_tokenized
         .map { inputdocument -> tuple(inputdocument, file(params.dictionary), file(params.preservation), file(params.rules), file(params.inthistlexicon)) }
         .set { foliadocuments_withdata }
 
