@@ -237,7 +237,7 @@ if (params.dolangid) {
         mv ${inputdocument} ${inputdocument.simpleName}.folia.xml
 
         if [[ "${inputdocument}" != "${inputdocument.simpleName}.langid.folia.xml" ]]; then
-            colibri-lang -t s -l "${detectlanguages}" "${inputdocument.simpleName}.folia.xml"
+            colibri-lang --confidence 0.33 --tags s --langs "${detectlanguages}" "${inputdocument.simpleName}.folia.xml"
             echo "Output should be in ${inputdocument.simpleName}.lang.folia.xml"
         else
             exit 0
