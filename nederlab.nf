@@ -339,6 +339,11 @@ if (params.mode == "modernize") {
         fi
 
         FoLiA-wordtranslate \$opts --outputclass contemporary -t 1 -d "${dictionary}" -p "${preservationlexicon}" -r "${rulefile}" -H "${inthistlexicon}" ${inputdocument}
+        r=\$?
+
+        mv ${inputdocument.simpleName}.*.translated.folia.xml ${inputdocument.simpleName}.translated.folia.xml 2> /dev/null
+
+        exit \$r
         """
     }
 
