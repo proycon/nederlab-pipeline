@@ -355,7 +355,7 @@ if (params.mode == "modernize") {
         errorStrategy params.frogerrors
 
         input:
-        file inputdocuments from foliadocuments_modernized
+        file inputdocument from foliadocuments_modernized
         val skip from params.skip
         val virtualenv from params.virtualenv
         val uselangid from params.uselangid
