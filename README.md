@@ -16,8 +16,9 @@ logic, powered by [Nextflow](https://www.nextflow.io), not the individual compon
 * [FoLiA-utils](https://github.com/LanguageMachines) for:
     * ``FoLiA-wordtranslate`` - Implements Erik Tjong Kim Sang's word-by-word modernisation method. This is a
         reimplementation of his initial prototype, with some improvements of my own.
+* [Colibri Utils](https://github.com/proycon/colibri-utils) for:
+    * ``colibri-lang`` - Language Identification (including models for Middle Dutch and Early new Dutch)
 * [FoLiA Tools](https://github.com/proycon/foliatools) for:
-    * ``folialangid`` - Language Identification based on [langid.py](https://github.com/saffsd/langid.py).
     * ``foliavalidator`` - Validation
     * ``foliaupgrade`` - Upgrades to FoLiA v2
     * ``tei2folia`` - Conversion from a subset of TEI to FoLiA.
@@ -26,7 +27,7 @@ logic, powered by [Nextflow](https://www.nextflow.io), not the individual compon
 
 ## Format
 
-All tools in this pipeline take and produces documents in the [FoLiA](https://proycon.github.io/folia) XML format (version 2). Provenance information of all the tools is recorded in the documents themselves. Please take note of the [FoLiA Guidelines](https://folia.readthedocs.io/en/latest/guidelines.html) if you work with this pipeline or any documents produced by it.
+All tools in this pipeline take and produce documents in the [FoLiA](https://proycon.github.io/folia) XML format (version 2). Provenance information of all the tools is recorded in the documents themselves. Please take note of the [FoLiA Guidelines](https://folia.readthedocs.io/en/latest/guidelines.html) if you work with this pipeline or any documents produced by it.
 
 The following linguistic enrichments can be performed, note that different FoLiA (tag)sets can be produced, even at the same
 time, based on what methodology was choosen and what time period the document covers:
