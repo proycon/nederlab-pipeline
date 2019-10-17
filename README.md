@@ -1,5 +1,8 @@
 [![Language Machines Badge](http://applejack.science.ru.nl/lamabadge.php/nederlab-pipeline)](http://applejack.science.ru.nl/languagemachines/)
 [![Build Status](https://travis-ci.com/proycon/nederlab-pipeline.svg?branch=master)](https://travis-ci.org/proycon/nederlab-pipeline)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/proycon/nederlab-pipeline)
+
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
 # Nederlab Pipeline
 
