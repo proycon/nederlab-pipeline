@@ -87,7 +87,7 @@ process compress {
 
         script:
         """
-        gzip "${inputdocument}"
+        gzip -c -k \$(realpath ${inputdocument}) > ${inputdocument}.gz
         """
 }
 
