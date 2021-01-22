@@ -48,10 +48,10 @@ def addsubmetadata_ozt(doc, oztfile, metadatadir):
 
     #verify
     found = 0
-    # "divs of type chapter with descendant head of type h3 will be put in a separate documents (ozt: onzelfstandige titels)" (ETKS)
-    for head in doc.select(folia.Head, False ):
-        if head.cls == "h3":
-            div = head.ancestor(folia.Division)
+    # original criterium: "divs of type chapter with descendant head of type h3 will be put in a separate documents (ozt: onzelfstandige titels)" (ETKS)
+    # CORRECTION: no check on h3 necessary, led to incorrect results, all chapters are independent titles.
+    for div in doc.select(folia.Division, False ):
+        if div.cls == "chapter":
             found += 1
             seq_id = str(found).zfill(4)
             ozt_id = doc.id + "_" + seq_id
