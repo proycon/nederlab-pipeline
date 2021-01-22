@@ -99,6 +99,24 @@ For instructions, run ``nederlab.nf --help``.
 
 You can also let Nextflow manage Docker and LaMachine for you, but we won't go into that here.
 
+
+### Fix and split pipeline
+
+There was a problem with the DBNL collection as delivered in 2019 (described in [internal issue
+TT-709](https://jira.socialhistoryservices.org/browse/TT-709)). Also, it was decided that it was better to split the
+independent titles after all. A Nextflow script has been written to handle this.
+
+Put the collection you want to process in some input directory, create an output directory, and run something like:
+
+```
+$ dbnl_fix_and_split.nf --inputdir input/ --outputdir output/ --datadir /path/to/nederlab-linguistic-enrichment
+```
+
+The data directory should point to where you checked out the [nederlab-linguistic-enrichment repository](https://github.com/INL/nederlab-linguistic-enrichment) (a private repository by INT).
+
+Note: pass ``--extension folia.xml.gz`` if the input files are compressed. The script will compress all output files by
+default too.
+
 ## Resources
 
 Resources for Erik Tjong Kim Sang's modernisation method are included in this repository:
