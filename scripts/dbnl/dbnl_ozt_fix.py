@@ -29,11 +29,20 @@ def reassignids(div):
                 ent.parent.id = None #no ID on the layer
                 ent.id = ent.parent.parent.generate_id(ent.__class__)
 
-def process(filename, outputdir, metadata, oztmetadata, oztcount):
+def process(filename, outputdir, metadata, oztmetadata, oztcount, ignore):
     assert os.path.exists(filename)
     doc = folia.Document(file=filename)
     doc.provenance.append( folia.Processor.create("dbnl_ozt_fix.py") )
     found = 0
+
+    if doc.id not in metadata:
+        if ignore:
+            print("WARNING: Document not found in Nederlab metadata! Ignoring this and passing the document as-is!!!",file=sys.stderr)
+            doc.save(os.path.join(outputdir, os.path.basename(doc.filename)))
+            return
+        else:
+            raise Exception("Document not found in metadata")
+
     for key, value in metadata[doc.id].items():
         if key not in ('title','ingestTime', 'updateTime','processingMethod') and value:
             doc.metadata[key] = value
@@ -71,6 +80,7 @@ def main():
     parser = argparse.ArgumentParser(description="", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d','--datadir', type=str,help="Path to the nederlab-linguistic-enrichment repository clone (https://github.com/INL/nederlab-linguistic-enrichment). Used to get metadata.", action='store',default="./",required=True)
     parser.add_argument('-O','--outputdir', type=str,help="Output directory", action='store',default="./",required=False)
+    parser.add_argument('--ignore',help="Ignore files that do not occur in the metadata, just let them pass through", action='store_true', required=False)
     parser.add_argument('files', nargs='*', help="Input documents (FoLiA XML)")
     args = parser.parse_args()
 
@@ -113,7 +123,7 @@ def main():
     for i, filename in enumerate(args.files):
         seqnr = i+1
         print(f"#{seqnr} - Loading {filename}...",file=sys.stderr)
-        process(filename, args.outputdir, metadata, oztmetadata, oztcount)
+        process(filename, args.outputdir, metadata, oztmetadata, oztcount, args.ignore)
 
 
 if __name__ == '__main__':

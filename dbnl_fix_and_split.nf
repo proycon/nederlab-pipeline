@@ -14,6 +14,7 @@ def env = System.getenv()
 
 params.virtualenv =  env.containsKey('VIRTUAL_ENV') ? env['VIRTUAL_ENV'] : ""
 params.extension = "xml"
+params.ignore = false
 
 if (params.containsKey('help') || !params.containsKey('inputdir') || !params.containsKey('outputdir') || !params.containsKey('datadir')) {
     log.info "Usage:"
@@ -25,6 +26,7 @@ if (params.containsKey('help') || !params.containsKey('inputdir') || !params.con
     log.info "  --datadir DIRECTORY      Directory where the inl/nederlab-linguistic-enrichment repository is cloned"
     log.info "Optional parameters:"
     log.info "  --extension STR          Extension of documents in input directory (default: xml)"
+    log.info "  --ignore                 Ignore documents that are not in the Nederlab collection, just pass them through as-is"
     log.info ""
 }
 
@@ -38,6 +40,7 @@ process fix {
         file inputdocument from inputdocuments
         val datadir from params.datadir
         val virtualenv from params.virtualenv
+        val ignore from params.ignore
 
         output:
         file "${inputdocument.simpleName}.fixed.folia.xml" into fixeddocuments
@@ -50,14 +53,20 @@ process fix {
         fi
         set -u
 
+        if [ ! -z "$ignore" ]; then
+            flags="--ignore"
+        else
+            flags=""
+        fi
+
         mkdir -p out
-        python3 \$LM_PREFIX/opt/nederlab-pipeline/scripts/dbnl/dbnl_ozt_fix.py -d ${datadir} -O out/ ${inputdocument} || exit 1
+        python3 \$LM_PREFIX/opt/nederlab-pipeline/scripts/dbnl/dbnl_ozt_fix.py -d ${datadir} -O out/ \$flags ${inputdocument} || exit 1
         mv out/*xml ${inputdocument.simpleName}.fixed.folia.xml || exit 1
         """
 }
 
 process split {
-        publishDir params.outputdir, mode: 'copy', overwrite: true, pattern: "*_????.folia.xml"
+        //publishDir params.outputdir, mode: 'copy', overwrite: true, pattern: "*_????.folia.xml"
 
         input:
         file inputdocument from fixeddocuments
@@ -75,19 +84,35 @@ process split {
         set -u
 
         foliasplit -q div --submetadata --external ${inputdocument}
+
+        count=\$(ls *_????.folia.xml | wc -l)
+        if [ \$count -eq 0 ]; then
+            #there are no output documents
+            #this means there was nothing
+            #to split, take the input file as output (with suffix 0000 so
+            #this task picks it up as valid output)
+            ln -s ${inputdocument} ${inputdocument.simpleName}_0000.folia.xml
+        fi
         """
 }
 
 process compress {
+        publishDir params.outputdir, mode: 'copy', overwrite: true, pattern: "*.folia.xml.gz"
+
         input:
         file inputdocument from splitdocuments
 
         output:
-        file "${inputdocument}.gz" into outputdocuments
+        file "${inputdocument.toString().replace('_0000.folia.xml','.folia.xml')}.gz" into outputdocuments
 
         script:
         """
-        gzip -c -k \$(realpath ${inputdocument}) > ${inputdocument}.gz
+        if echo "${inputdocument}" | grep -q "_0000.folia.xml"; then
+            #remove the _0000 suffix again for the final result
+            gzip -c -k \$(realpath ${inputdocument}) > \$(echo "${inputdocument}" | sed 's/_0000.folia.xml/.folia.xml/').gz
+        else
+            gzip -c -k \$(realpath ${inputdocument}) > ${inputdocument}.gz
+        fi
         """
 }
 
