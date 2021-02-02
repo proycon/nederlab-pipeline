@@ -47,34 +47,39 @@ def process(filename, outputdir, metadata, oztmetadata, oztcount, ignore):
         if key not in ('title','ingestTime', 'updateTime','processingMethod') and value:
             doc.metadata[key] = value
 
-    for div in doc.select(folia.Division, False):
-        if div.cls == "chapter":
-            found += 1
-            seq_id = str(found).zfill(4)
-            ozt_id = doc.id + "_" + seq_id
-            print(f"Found {ozt_id}, reassigning identifiers...",file=sys.stderr)
-            div.id = ozt_id  + ".text"
-            div.metadata = ozt_id  + ".metadata"
-            doc.submetadata[ozt_id + ".metadata"] = folia.NativeMetaData()
-            doc.submetadatatype[ozt_id+".metadata"] = "native"
-            if ozt_id not in oztmetadata:
-                raise Exception(f"No metadata was found for {ozt_id}")
-            for key, value in oztmetadata[ozt_id].items():
-                if key not in ('ingestTime', 'updateTime','processingMethod') and value:
-                    doc.submetadata[ozt_id + ".metadata"][key] = value
-            reassignids(div)
+    if doc.id in oztcount:
+        for div in doc.select(folia.Division, False):
+            if div.cls == "chapter":
+                found += 1
+                seq_id = str(found).zfill(4)
+                ozt_id = doc.id + "_" + seq_id
+                if ozt_id not in oztmetadata:
+                    found -= 1 #false positive
+                    print(f"WARNING: No metadata was found for {ozt_id}, we expected an independent title but this is not one! Skipping...", file=sys.stderr)
+                    continue
+                print(f"Found {ozt_id}, reassigning identifiers...",file=sys.stderr)
+                div.id = ozt_id  + ".text"
+                div.metadata = ozt_id  + ".metadata"
+                doc.submetadata[ozt_id + ".metadata"] = folia.NativeMetaData()
+                doc.submetadatatype[ozt_id+".metadata"] = "native"
+                for key, value in oztmetadata[ozt_id].items():
+                    if key not in ('ingestTime', 'updateTime','processingMethod') and value:
+                        doc.submetadata[ozt_id + ".metadata"][key] = value
+                reassignids(div)
+
+        expected = oztcount[doc.id]
+        if found != expected:
+            raise Exception(f"Found {found} OZT chapters for {doc.id}, expected {expected}")
+    else:
+        print(f"Document {doc.id} has no independent titles, skipping...", file=sys.stderr)
 
     obsolete_submetadata = [ key for key, value in doc.submetadata.items() if not value ]
     for key in obsolete_submetadata:
         del doc.submetadata[key]
         del doc.submetadatatype[key]
 
-    expected = oztcount[doc.id]
-    if found != expected:
-        raise Exception(f"Found {found} OZT chapters for {doc.id}, expected {expected}")
-
     print("Saving document",file=sys.stderr)
-    doc.save(os.path.join(outputdir, os.path.basename(doc.filename)))
+    doc.save(os.path.join(outputdir, os.path.basename(doc.filename.replace(".xml.gz",".xml"))))
 
 def main():
     parser = argparse.ArgumentParser(description="", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
