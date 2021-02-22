@@ -109,9 +109,9 @@ process compress {
         """
         if echo "${inputdocument}" | grep -q "_0000.folia.xml"; then
             #remove the _0000 suffix again for the final result
-            gzip -c -k \$(realpath ${inputdocument}) > \$(echo "${inputdocument}" | sed 's/_0000.folia.xml/.folia.xml/').gz
+            gzip --best -c -k \$(realpath ${inputdocument}) > \$(echo "${inputdocument}" | sed 's/_0000.folia.xml/.folia.xml/').gz
         else
-            gzip -c -k \$(realpath ${inputdocument}) > ${inputdocument}.gz
+            gzip --best -c -k \$(realpath ${inputdocument}) > ${inputdocument}.gz
         fi
         """
 }
