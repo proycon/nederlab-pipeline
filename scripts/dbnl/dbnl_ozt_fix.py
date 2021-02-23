@@ -49,7 +49,7 @@ def process(filename, outputdir, metadata, oztmetadata, oztcount, ignore):
 
     if doc.id in oztcount:
         for div in doc.select(folia.Division, False):
-            if div.cls == "chapter":
+            if div.cls in ("chapter","act"):
                 found += 1
                 seq_id = str(found).zfill(4)
                 ozt_id = doc.id + "_" + seq_id
