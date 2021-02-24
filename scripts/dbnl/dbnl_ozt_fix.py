@@ -66,6 +66,8 @@ def process(filename, outputdir, metadata, oztmetadata, oztcount, ignore):
                     if key not in ('ingestTime', 'updateTime','processingMethod') and value:
                         doc.submetadata[ozt_id + ".metadata"][key] = value
                 reassignids(div)
+            elif div.metadata:
+                div.metadata = None
 
         expected = oztcount[doc.id]
         if found != expected:
