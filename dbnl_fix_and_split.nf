@@ -62,6 +62,7 @@ process fix {
         mkdir -p out
         python3 \$LM_PREFIX/opt/nederlab-pipeline/scripts/dbnl/dbnl_ozt_fix.py -d ${datadir} -O out/ \$flags ${inputdocument} || exit 1
         mv out/*xml ${inputdocument.simpleName}.fixed.folia.xml || exit 1
+        sync
         """
 }
 
@@ -92,6 +93,8 @@ process split {
             #to split, take the input file as output (with suffix 0000 so
             #this task picks it up as valid output)
             ln -s ${inputdocument} ${inputdocument.simpleName}_0000.folia.xml
+        else
+            sync
         fi
         """
 }
