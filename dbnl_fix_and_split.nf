@@ -43,7 +43,7 @@ process fix {
         val ignore from params.ignore
 
         output:
-        file "${inputdocument.simpleName}.fixed.folia.xml" into fixeddocuments
+        file "out/${inputdocument.simpleName}.fixed.folia.xml" into fixeddocuments
 
         script:
         """
@@ -61,7 +61,7 @@ process fix {
 
         mkdir -p out
         python3 \$LM_PREFIX/opt/nederlab-pipeline/scripts/dbnl/dbnl_ozt_fix.py -d ${datadir} -O out/ \$flags ${inputdocument} || exit 1
-        mv out/*xml ${inputdocument.simpleName}.fixed.folia.xml || exit 1
+        mv out/*xml out/${inputdocument.simpleName}.fixed.folia.xml || exit 1
         """
 }
 
@@ -73,7 +73,7 @@ process split {
         val virtualenv from params.virtualenv
 
         output:
-        file "*_????.folia.xml" into splitdocuments mode flatten
+        file "out/*.folia.xml" into splitdocuments mode flatten
 
         script:
         """
@@ -83,15 +83,16 @@ process split {
         fi
         set -u
 
-        foliasplit -q div --submetadata --external ${inputdocument}
+        mkdir -p out
+        foliasplit -q div --submetadata --out out --external ${inputdocument}
 
-        count=\$(ls *_????.folia.xml | wc -l)
+        count=\$(ls out/*_????.folia.xml | wc -l)
         if [ \$count -eq 0 ]; then
             #there are no output documents
             #this means there was nothing
             #to split, take the input file as output (with suffix 0000 so
             #this task picks it up as valid output)
-            ln -s ${inputdocument} ${inputdocument.simpleName}_0000.folia.xml
+            ln -s ${inputdocument} out/${inputdocument.simpleName}_0000.folia.xml
         fi
         """
 }
@@ -103,7 +104,7 @@ process compress {
         file inputdocument from splitdocuments
 
         output:
-        file "${inputdocument.toString().replace('_0000.folia.xml','.folia.xml')}.gz" into outputdocuments
+        file "${inputdocument.toString().replace('_0000.folia.xml','.folia.xml').replace('out/','/')}.gz" into outputdocuments
 
         script:
         """
