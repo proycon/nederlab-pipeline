@@ -43,7 +43,7 @@ process fix {
         val ignore from params.ignore
 
         output:
-        file "out/${inputdocument.simpleName}.fixed.folia.xml" into fixeddocuments
+        file "out/${inputdocument.simpleName}.folia.xml" into fixeddocuments
 
         script:
         """
@@ -61,7 +61,7 @@ process fix {
 
         mkdir -p out
         python3 \$LM_PREFIX/opt/nederlab-pipeline/scripts/dbnl/dbnl_ozt_fix.py -d ${datadir} -O out/ \$flags ${inputdocument} || exit 1
-        mv out/*xml out/${inputdocument.simpleName}.fixed.folia.xml || exit 1
+        mv out/*xml out/${inputdocument.simpleName}.folia.xml || exit 1
         """
 }
 
@@ -97,11 +97,32 @@ process split {
         """
 }
 
+process validate {
+        input:
+        file inputdocument from splitdocuments
+        val virtualenv from params.virtualenv
+
+        output:
+        file "out/${inputdocument}" into validateddocuments
+
+        script:
+        """
+        set +u
+        if [ ! -z "${virtualenv}" ]; then
+            source ${virtualenv}/bin/activate
+        fi
+        set -u
+
+        mkdir -p out
+        foliavalidator -o ${inputdocument} > out/${inputdocument}
+        """
+}
+
 process compress {
         publishDir params.outputdir, mode: 'copy', overwrite: true, pattern: "*.folia.xml.gz"
 
         input:
-        file inputdocument from splitdocuments
+        file inputdocument from validateddocuments
 
         output:
         file "${inputdocument.toString().replace('_0000.folia.xml','.folia.xml').replace('out/','/')}.gz" into outputdocuments
