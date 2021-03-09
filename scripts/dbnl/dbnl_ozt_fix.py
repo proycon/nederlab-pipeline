@@ -51,13 +51,14 @@ def process(filename, outputdir, metadata, oztmetadata, oztcount, ignore):
             doc.metadata[key] = value
 
     if doc.id in oztcount:
+        unmatched = 0
         for div in doc.select(folia.Division, False):
             if div.cls in ("chapter","act"):
                 found += 1
                 seq_id = str(found).zfill(4)
                 ozt_id = doc.id + "_" + seq_id
                 if ozt_id not in oztmetadata:
-                    found -= 1 #false positive
+                    unmatched += 1 #false positive
                     print(f"WARNING: No metadata was found for {ozt_id}, we expected an independent title but this is not one! Skipping...", file=sys.stderr)
                     continue
                 print(f"Found {ozt_id}, reassigning identifiers...",file=sys.stderr)
@@ -73,8 +74,8 @@ def process(filename, outputdir, metadata, oztmetadata, oztcount, ignore):
                 div.metadata = None
 
         expected = oztcount[doc.id]
-        if found != expected:
-            raise Exception(f"Found {found} OZT chapters for {doc.id}, expected {expected}")
+        if found != expected + unmatched:
+            raise Exception(f"Found {found}  OZT chapters for {doc.id}, expected {expected}  ( + {unmatched} unmatched)")
     else:
         print(f"Document {doc.id} has no independent titles, skipping...", file=sys.stderr)
 
