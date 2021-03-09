@@ -38,7 +38,7 @@ def process(filename, outputdir, metadata, oztmetadata, oztcount, ignore):
     if doc.id not in metadata:
         if ignore:
             print("WARNING: Document not found in Nederlab metadata! Ignoring this and passing the document as-is!!!",file=sys.stderr)
-            doc.save(os.path.join(outputdir, os.path.basename(doc.filename)))
+            doc.save(os.path.join(outputdir, os.path.basename(doc.filename(".xml.gz",".xml"))))
             return
         else:
             raise Exception("Document not found in metadata")
