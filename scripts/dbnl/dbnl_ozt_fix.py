@@ -41,7 +41,7 @@ def process(filename, outputdir, metadata, oztmetadata, oztcount, ignore):
             print("WARNING: Document ID did not have _01 suffix and did not match with metadata, added it manually so it matches again",file=sys.stderr)
         elif ignore:
             print("WARNING: Document not found in Nederlab metadata! Ignoring this and passing the document as-is!!!",file=sys.stderr)
-            doc.save(os.path.join(outputdir, os.path.basename(doc.filename(".xml.gz",".xml"))))
+            doc.save(os.path.join(outputdir, os.path.basename(doc.filename.replace(".xml.gz",".xml"))))
             return
         else:
             raise Exception("Document not found in metadata")
