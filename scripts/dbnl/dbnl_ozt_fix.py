@@ -52,6 +52,7 @@ def process(filename, outputdir, metadata, oztmetadata, oztcount, ignore):
 
     if doc.id in oztcount:
         unmatched = 0
+        assigned_ozt_divs = set()
         for div in doc.select(folia.Division, False):
             if div.cls in ("chapter","act"):
                 found += 1
@@ -59,7 +60,11 @@ def process(filename, outputdir, metadata, oztmetadata, oztcount, ignore):
                 ozt_id = doc.id + "_" + seq_id
                 if ozt_id not in oztmetadata:
                     unmatched += 1 #false positive
-                    print(f"WARNING: No metadata was found for {ozt_id}, we expected an independent title but this is not one! Skipping...", file=sys.stderr)
+                    if div.id in assigned_ozt_divs:
+                        print(f"ERROR: No metadata was found for {ozt_id}, we expected an independent title but this is not one! We can't skip this element ({div.id}) because it was already assigned to an earlier division and would cause a conflict! This may be indicative of a problem where the metadata is out of sync with the actual files! Please investigate.", file=sys.stderr)
+                        sys.exit(6)
+                    else:
+                        print(f"WARNING: No metadata was found for {ozt_id}, we expected an independent title but this is not one! Skipping...", file=sys.stderr)
                     div.metadata = None #unassign any metadata
                     continue
                 print(f"Found {ozt_id}, reassigning identifiers...",file=sys.stderr)
@@ -67,6 +72,7 @@ def process(filename, outputdir, metadata, oztmetadata, oztcount, ignore):
                 div.metadata = ozt_id  + ".metadata"
                 doc.submetadata[ozt_id + ".metadata"] = folia.NativeMetaData()
                 doc.submetadatatype[ozt_id+".metadata"] = "native"
+                assigned_ozt_divs.add(div.id)
                 for key, value in oztmetadata[ozt_id].items():
                     if key not in ('ingestTime', 'updateTime','processingMethod') and value:
                         doc.submetadata[ozt_id + ".metadata"][key] = value
