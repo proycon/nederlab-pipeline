@@ -60,6 +60,7 @@ def process(filename, outputdir, metadata, oztmetadata, oztcount, ignore):
                 if ozt_id not in oztmetadata:
                     unmatched += 1 #false positive
                     print(f"WARNING: No metadata was found for {ozt_id}, we expected an independent title but this is not one! Skipping...", file=sys.stderr)
+                    div.metadata = None #unassign any metadata
                     continue
                 print(f"Found {ozt_id}, reassigning identifiers...",file=sys.stderr)
                 div.id = ozt_id  + ".text"
